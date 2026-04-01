@@ -327,7 +327,7 @@ if not run_btn:
 if not ticker_input:
     st.error("❌ Please enter a ticker symbol."); st.stop()
 
-eff_start = start_date if start_date else (datetime.today()-timedelta(days=365*5)).date()
+eff_start = start_date if start_date else datetime(1980, 1, 1).date()
 
 with st.spinner(f"Fetching data for **{ticker_input}**..."):
     data = fetch_all(ticker_input, eff_start.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))

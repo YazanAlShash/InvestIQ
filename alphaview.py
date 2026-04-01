@@ -24,7 +24,7 @@ except ImportError:
     PROPHET_AVAILABLE = False
 
 st.set_page_config(page_title="AlphaView — Investment Analysis", page_icon="📈",
-                   layout="wide", initial_sidebar_state="auto")
+                   layout="wide", initial_sidebar_state="expanded")
 
 st.markdown("""
 <style>
@@ -37,13 +37,20 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif !important; }
 [data-testid="stSidebar"] .stButton button { background: #3b82f6 !important; border: none !important; border-radius: 8px !important; color: #fff !important; font-weight: 600 !important; }
 [data-testid="stSidebar"] .stButton button:hover { background: #2563eb !important; }
 
-/* Always show sidebar collapse arrow */
+/* Always show sidebar toggle arrow */
 [data-testid="collapsedControl"] {
     display: flex !important;
     visibility: visible !important;
+    opacity: 1 !important;
     background: #080c14 !important;
     border-right: 1px solid rgba(255,255,255,0.08) !important;
-    color: rgba(255,255,255,0.5) !important;
+}
+[data-testid="collapsedControl"] svg {
+    fill: rgba(255,255,255,0.5) !important;
+}
+section[data-testid="stSidebarCollapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
 }
 
 .main, .stApp { background: #080c14 !important; }

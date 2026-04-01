@@ -24,7 +24,7 @@ except ImportError:
     PROPHET_AVAILABLE = False
 
 st.set_page_config(page_title="AlphaView — Investment Analysis", page_icon="📈",
-                   layout="wide", initial_sidebar_state="expanded")
+                   layout="wide", initial_sidebar_state="auto")
 
 st.markdown("""
 <style>
@@ -36,6 +36,16 @@ html, body, [class*="css"] { font-family: 'DM Sans', sans-serif !important; }
 [data-testid="stSidebar"] * { color: #e8eaf0 !important; }
 [data-testid="stSidebar"] .stButton button { background: #3b82f6 !important; border: none !important; border-radius: 8px !important; color: #fff !important; font-weight: 600 !important; }
 [data-testid="stSidebar"] .stButton button:hover { background: #2563eb !important; }
+
+/* Always show sidebar collapse arrow */
+[data-testid="collapsedControl"] {
+    display: flex !important;
+    visibility: visible !important;
+    background: #080c14 !important;
+    border-right: 1px solid rgba(255,255,255,0.08) !important;
+    color: rgba(255,255,255,0.5) !important;
+}
+
 .main, .stApp { background: #080c14 !important; }
 .stTabs [data-baseweb="tab-list"] { background: rgba(255,255,255,0.03) !important; border-radius: 10px !important; padding: 4px !important; gap: 2px !important; border: 1px solid rgba(255,255,255,0.06) !important; }
 .stTabs [data-baseweb="tab"] { background: transparent !important; border-radius: 7px !important; color: rgba(255,255,255,0.4) !important; font-weight: 500 !important; font-size: 13px !important; padding: 6px 16px !important; border: none !important; }
@@ -51,7 +61,110 @@ p, li { color: rgba(255,255,255,0.75) !important; }
 hr { border-color: rgba(255,255,255,0.06) !important; }
 ::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 10px; }
+
+/* Loading overlay */
+#av-loader {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: #080c14; z-index: 99999;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    animation: fadeOutLoader 0.6s ease 2.4s forwards;
+}
+@keyframes fadeOutLoader {
+    to { opacity: 0; pointer-events: none; }
+}
+
+/* Hex pulse */
+.av-hex {
+    animation: hexPulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes hexPulse {
+    from { transform: scale(0.95); opacity: 0.8; }
+    to   { transform: scale(1.05); opacity: 1; }
+}
+
+/* Bar rise animation */
+.av-bar1 { animation: barRise 0.6s ease 0.2s both; }
+.av-bar2 { animation: barRise 0.6s ease 0.4s both; }
+.av-bar3 { animation: barRise 0.6s ease 0.6s both; }
+.av-bar4 { animation: barRise 0.6s ease 0.8s both; }
+@keyframes barRise {
+    from { transform: scaleY(0); transform-origin: bottom; opacity: 0; }
+    to   { transform: scaleY(1); transform-origin: bottom; opacity: 1; }
+}
+
+/* Line draw */
+.av-line {
+    stroke-dasharray: 120;
+    stroke-dashoffset: 120;
+    animation: drawLine 0.8s ease 1s forwards;
+}
+@keyframes drawLine {
+    to { stroke-dashoffset: 0; }
+}
+
+/* Dot pop */
+.av-dot {
+    opacity: 0;
+    animation: dotPop 0.3s ease 1.7s forwards;
+}
+@keyframes dotPop {
+    from { transform: scale(0); opacity: 0; }
+    to   { transform: scale(1); opacity: 1; }
+}
+
+/* Wordmark fade */
+.av-wordmark {
+    opacity: 0;
+    animation: wordFade 0.5s ease 1.2s forwards;
+}
+@keyframes wordFade {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Tagline fade */
+.av-tagline {
+    opacity: 0;
+    animation: wordFade 0.5s ease 1.6s forwards;
+}
+
+/* Dots loader */
+.av-dots { display: flex; gap: 6px; margin-top: 24px; }
+.av-dot-1, .av-dot-2, .av-dot-3 {
+    width: 6px; height: 6px; border-radius: 50%; background: #3b82f6;
+    animation: dotBounce 1s ease infinite;
+}
+.av-dot-2 { animation-delay: 0.15s; }
+.av-dot-3 { animation-delay: 0.3s; }
+@keyframes dotBounce {
+    0%,80%,100% { transform: scale(0.6); opacity: 0.4; }
+    40% { transform: scale(1); opacity: 1; }
+}
 </style>
+
+<div id="av-loader">
+    <svg class="av-hex" width="120" height="138" viewBox="0 0 92 104">
+        <polygon points="46,0 92,26 92,78 46,104 0,78 0,26" fill="#0f1f3d" stroke="#1e3a6e" stroke-width="1.5"/>
+        <rect class="av-bar1" x="14" y="62" width="9" height="20" rx="2" fill="#1d4ed8"/>
+        <rect class="av-bar2" x="27" y="50" width="9" height="32" rx="2" fill="#2563eb"/>
+        <rect class="av-bar3" x="40" y="38" width="9" height="44" rx="2" fill="#3b82f6"/>
+        <rect class="av-bar4" x="53" y="28" width="9" height="54" rx="2" fill="#60a5fa"/>
+        <polyline class="av-line" points="14,72 27,58 40,44 62,24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle class="av-dot" cx="62" cy="24" r="4" fill="#22c55e"/>
+    </svg>
+    <div class="av-wordmark" style="margin-top:20px;font-family:'DM Sans',sans-serif;font-size:32px;font-weight:600;color:#fff;letter-spacing:-1px">
+        Alpha<span style="color:#3b82f6;font-weight:300">View</span>
+    </div>
+    <div class="av-tagline" style="font-family:'DM Sans',sans-serif;font-size:11px;color:rgba(255,255,255,0.3);letter-spacing:2.5px;text-transform:uppercase;margin-top:6px">
+        Investment Analysis Platform
+    </div>
+    <div class="av-dots">
+        <div class="av-dot-1"></div>
+        <div class="av-dot-2"></div>
+        <div class="av-dot-3"></div>
+    </div>
+</div>
 """, unsafe_allow_html=True)
 
 # ── Plotly shared config ──────────────────────────────────────
@@ -111,9 +224,7 @@ with st.sidebar:
     ticker_input = st.text_input("Ticker", value="", placeholder="e.g. AAPL, AMZN, BTC-CAD",
                                   label_visibility="collapsed").upper().strip()
     st.markdown("**📅 Historical Data**")
-    c1, c2 = st.columns(2)
-    with c1: start_date = st.date_input("From", value=None)
-    with c2: end_date   = st.date_input("To",   value=datetime.today())
+    end_date = st.date_input("End Date", value=datetime.today())
 
     st.markdown("**🎲 Monte Carlo**")
     prediction_days = st.number_input("Forecast (days)", 30, 2000, 365, 10)
@@ -327,7 +438,7 @@ if not run_btn:
 if not ticker_input:
     st.error("❌ Please enter a ticker symbol."); st.stop()
 
-eff_start = start_date if start_date else datetime(1980, 1, 1).date()
+eff_start = datetime(1980, 1, 1).date()
 
 with st.spinner(f"Fetching data for **{ticker_input}**..."):
     data = fetch_all(ticker_input, eff_start.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d"))

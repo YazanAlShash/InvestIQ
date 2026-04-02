@@ -561,7 +561,7 @@ with t0:
         hovertemplate="<b>%{x|%b %d, %Y}</b><br>$%{y:.2f}<extra></extra>"))
     fig_h.update_layout(**PL,height=280,
         title=dict(text=f"{ticker_input} — Historical Close Price",font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-        xaxis=dict(**PL["xaxis"],type="date",rangeselector=RS,rangeslider=RL))
+        xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
     st.plotly_chart(fig_h,use_container_width=True)
 
     st.divider()
@@ -739,7 +739,7 @@ with t3:
     fig_mc.update_layout(**PL,height=420,
         title=dict(text=f"{ticker_input} — {prediction_days}-Day Monte Carlo Forecast",
                    font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-        xaxis=dict(**PL["xaxis"],type="date",rangeselector=RS,rangeslider=RL))
+        xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
     st.plotly_chart(fig_mc,use_container_width=True)
 
     fig_dist=go.Figure()
@@ -819,7 +819,7 @@ with t4:
         fig_p.update_layout(**PL,height=400,
             title=dict(text=f"{ticker_input} — {meth} Price Forecast ({prediction_days}d)",
                        font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-            xaxis=dict(**PL["xaxis"],type="date",rangeselector=RS,rangeslider=RL))
+            xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
         st.plotly_chart(fig_p,use_container_width=True)
 
         if fend:
@@ -936,7 +936,7 @@ with t5:
             fig_.update_layout(**PL,height=380,
                 title=dict(text=f"{lbl_} — ▲ Golden Cross  ▼ Death Cross",
                            font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0),
-                xaxis=dict(**PL["xaxis"],type="date",rangeselector=RS,rangeslider=RL))
+                xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
             st.plotly_chart(fig_,use_container_width=True)
             with st.expander("❓ How to read this indicator"):
                 desc={"SMA":"Simple average of last N prices. Slow to react — great for confirming trends.",
@@ -959,9 +959,9 @@ with t5:
                         annotation_text="Overbought 70",annotation_font_color="#ef4444",annotation_font_size=10)
         fig_r.add_hline(y=30,line_color="#22c55e",line_width=1,line_dash="dash",
                         annotation_text="Oversold 30",annotation_font_color="#22c55e",annotation_font_size=10)
-        fig_r.update_layout(**PL,height=320,yaxis=dict(**PL["yaxis"],range=[0,100]),
+        fig_r.update_layout(**PL,height=320,yaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,range=[0,100]),
             title=dict(text="RSI — Relative Strength Index (14-day)",font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0),
-            xaxis=dict(**PL["xaxis"],type="date",rangeselector=RS,rangeslider=RL))
+            xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
         st.plotly_chart(fig_r,use_container_width=True)
         with st.expander("❓ How to read RSI"):
             st.markdown("**>70** = overbought, pullback likely. **<30** = oversold, bounce likely. **40–60** = neutral. Rising above 50 = building momentum.")

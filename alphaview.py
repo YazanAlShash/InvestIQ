@@ -179,18 +179,6 @@ hr { border-color: rgba(255,255,255,0.06) !important; }
 """, unsafe_allow_html=True)
 
 # ── Plotly shared config ──────────────────────────────────────
-PL = dict(
-    paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#0d1117",
-    font=dict(family="DM Sans, sans-serif", color="rgba(255,255,255,0.7)", size=12),
-    xaxis=dict(gridcolor="rgba(255,255,255,0.05)", showline=False, zeroline=False),
-    yaxis=dict(gridcolor="rgba(255,255,255,0.05)", showline=False, zeroline=False),
-    margin=dict(l=10, r=10, t=40, b=10),
-    legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11, color="rgba(255,255,255,0.6)")),
-    hovermode="x unified",
-    hoverlabel=dict(bgcolor="#1a1d27", bordercolor="rgba(255,255,255,0.1)",
-                    font=dict(family="DM Mono, monospace", size=12)),
-)
-
 RS = dict(
     buttons=[
         dict(count=1,  label="1M", step="month", stepmode="backward"),
@@ -203,6 +191,37 @@ RS = dict(
     bordercolor="rgba(255,255,255,0.08)", font=dict(color="rgba(255,255,255,0.6)", size=11),
 )
 RL = dict(visible=True, bgcolor="#080c14", bordercolor="rgba(255,255,255,0.06)", thickness=0.04)
+
+_GRID = "rgba(255,255,255,0.05)"
+
+def pl(fig, height=400, title="", legend=True, yrange=None,
+       xtype="date", rsel=True, rslide=True):
+    """Apply shared dark theme layout to a Plotly figure."""
+    fig.update_layout(
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="#0d1117",
+        height=height,
+        margin=dict(l=10, r=10, t=40 if title else 20, b=10),
+        hovermode="x unified",
+        showlegend=legend,
+        font=dict(family="DM Sans, sans-serif", color="rgba(255,255,255,0.7)", size=12),
+        legend=dict(bgcolor="rgba(0,0,0,0)", font=dict(size=11, color="rgba(255,255,255,0.6)")),
+        hoverlabel=dict(bgcolor="#1a1d27", bordercolor="rgba(255,255,255,0.1)",
+                        font=dict(family="DM Mono, monospace", size=12)),
+    )
+    if title:
+        fig.update_layout(title=dict(
+            text=title, font=dict(size=13, color="rgba(255,255,255,0.7)"), x=0))
+    xd = dict(gridcolor=_GRID, showline=False, zeroline=False)
+    if xtype:  xd["type"] = xtype
+    if rsel:   xd["rangeselector"] = RS
+    if rslide: xd["rangeslider"]   = RL
+    fig.update_xaxes(**xd)
+    yd = dict(gridcolor=_GRID, showline=False, zeroline=False)
+    if yrange: yd["range"] = yrange
+    fig.update_yaxes(**yd)
+    return fig
+
 
 # ── Sidebar ───────────────────────────────────────────────────
 with st.sidebar:
@@ -559,9 +578,7 @@ with t0:
     fig_h.add_trace(go.Scatter(x=hist.index,y=hist["Close"].values,mode="lines",name="Close",
         line=dict(color="#3b82f6",width=1.5),fill="tozeroy",fillcolor="rgba(59,130,246,0.05)",
         hovertemplate="<b>%{x|%b %d, %Y}</b><br>$%{y:.2f}<extra></extra>"))
-    fig_h.update_layout(**PL,height=280,
-        title=dict(text=f"{ticker_input} — Historical Close Price",font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-        xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
+    pl(fig_h, height=280, title=f"{ticker_input} — Historical Close Price")
     st.plotly_chart(fig_h,use_container_width=True)
 
     st.divider()
@@ -606,9 +623,7 @@ with t0:
                 fig_pr=go.Figure(go.Bar(x=vals.index,y=vals.values,
                     marker_color=["#22c55e" if t==ticker_input else "#3b82f6" for t in vals.index],
                     hovertemplate="%{x}: %{y:.1f}%<extra></extra>"))
-                fig_pr.update_layout(**PL,height=220,showlegend=False,
-                    title=dict(text=f"ROE % vs Peers  |  🟩 = {ticker_input}",
-                               font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0))
+                pl(fig_pr, height=220, title=f"ROE % vs Peers  |  🟩 = {ticker_input}", legend=False, rsel=False, rslide=False)
                 st.plotly_chart(fig_pr,use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
@@ -682,8 +697,7 @@ with t2:
                     hovertemplate="Market: %{x:.3f}<br>Stock: %{y:.3f}<extra></extra>"))
                 fig_b.add_trace(go.Scatter(x=xl,y=yl,mode="lines",
                     line=dict(color="#ef4444",width=2),name=f"β={beta:.3f}"))
-                fig_b.update_layout(**PL,height=300,
-                    title=dict(text=f"Beta Regression (R²={r2:.3f})",font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0))
+                pl(fig_b, height=300, title=f"Beta Regression (R²={r2:.3f})", rsel=False, rslide=False, xtype=None)
                 st.plotly_chart(fig_b,use_container_width=True)
         else: st.warning("Beta could not be calculated.")
 
@@ -736,10 +750,7 @@ with t3:
             hovertemplate=f"{nm}<br>%{{x|%b %d, %Y}}: $%{{y:.2f}}<extra></extra>"))
     fig_mc.add_hline(y=S0,line_color="white",line_width=1,opacity=0.4,
                      annotation_text=f"Start ${S0:.2f}",annotation_font_color="rgba(255,255,255,0.5)")
-    fig_mc.update_layout(**PL,height=420,
-        title=dict(text=f"{ticker_input} — {prediction_days}-Day Monte Carlo Forecast",
-                   font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-        xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
+    pl(fig_mc, height=420, title=f"{ticker_input} — {prediction_days}-Day Monte Carlo Forecast")
     st.plotly_chart(fig_mc,use_container_width=True)
 
     fig_dist=go.Figure()
@@ -750,8 +761,7 @@ with t3:
         fig_dist.add_vline(x=v,line_color=c,line_width=1.5,
                            annotation_text=f"{n} ${v:.0f}",
                            annotation_font_color=c,annotation_font_size=10)
-    fig_dist.update_layout(**PL,height=260,showlegend=False,
-        title=dict(text="Distribution of Final Prices",font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0))
+    pl(fig_dist, height=260, title="Distribution of Final Prices", legend=False, rsel=False, rslide=False, xtype=None)
     st.plotly_chart(fig_dist,use_container_width=True)
 
 # ══════════════════════════════════════════════════════════════
@@ -816,10 +826,7 @@ with t4:
                 hovertemplate="%{x|%b %d, %Y}: $%{y:.2f}<extra></extra>"))
         fig_p.add_vline(x=str(cs["ds"].iloc[-1]),line_color="rgba(255,255,255,0.2)",line_dash="dash",
                         annotation_text="Today",annotation_font_color="rgba(255,255,255,0.3)")
-        fig_p.update_layout(**PL,height=400,
-            title=dict(text=f"{ticker_input} — {meth} Price Forecast ({prediction_days}d)",
-                       font=dict(size=13,color="rgba(255,255,255,0.7)"),x=0),
-            xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
+        pl(fig_p, height=400, title=f"{ticker_input} — {meth} Price Forecast ({prediction_days}d)")
         st.plotly_chart(fig_p,use_container_width=True)
 
         if fend:
@@ -847,7 +854,7 @@ with t4:
                     fig_c.add_trace(go.Scatter(x=cd["ds"],y=cd[col],mode="lines",
                         line=dict(color=clr,width=1.5),name=col,
                         hovertemplate=f"{col}: %{{y:.2f}}<extra></extra>"),row=row,col=1)
-            fig_c.update_layout(**PL,height=480,showlegend=False)
+            pl(fig_c, height=480, legend=False, rsel=False, rslide=False)
             fig_c.update_xaxes(gridcolor="rgba(255,255,255,0.05)",showline=False)
             fig_c.update_yaxes(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False)
             st.plotly_chart(fig_c,use_container_width=True)
@@ -933,10 +940,7 @@ with t5:
                 line=dict(color=c2_,width=1.5,dash="dash"),
                 hovertemplate=f"Slow: $%{{y:.2f}}<extra></extra>"))
             mk_cross(fig_,bulls,bears,td,px_,lbl_)
-            fig_.update_layout(**PL,height=380,
-                title=dict(text=f"{lbl_} — ▲ Golden Cross  ▼ Death Cross",
-                           font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0),
-                xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
+            pl(fig_, height=380, title=f"{lbl_} — ▲ Golden Cross  ▼ Death Cross")
             st.plotly_chart(fig_,use_container_width=True)
             with st.expander("❓ How to read this indicator"):
                 desc={"SMA":"Simple average of last N prices. Slow to react — great for confirming trends.",
@@ -959,9 +963,7 @@ with t5:
                         annotation_text="Overbought 70",annotation_font_color="#ef4444",annotation_font_size=10)
         fig_r.add_hline(y=30,line_color="#22c55e",line_width=1,line_dash="dash",
                         annotation_text="Oversold 30",annotation_font_color="#22c55e",annotation_font_size=10)
-        fig_r.update_layout(**PL,height=320,yaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,range=[0,100]),
-            title=dict(text="RSI — Relative Strength Index (14-day)",font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0),
-            xaxis=dict(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False,type="date",rangeselector=RS,rangeslider=RL))
+        pl(fig_r, height=320, title="RSI — Relative Strength Index (14-day)", yrange=[0,100])
         st.plotly_chart(fig_r,use_container_width=True)
         with st.expander("❓ How to read RSI"):
             st.markdown("**>70** = overbought, pullback likely. **<30** = oversold, bounce likely. **40–60** = neutral. Rising above 50 = building momentum.")
@@ -982,9 +984,8 @@ with t5:
         bc_=["rgba(34,197,94,0.6)" if v>=0 else "rgba(239,68,68,0.6)" for v in mh]
         fig_m.add_trace(go.Bar(x=td,y=mh,name="Histogram",marker_color=bc_,
             hovertemplate="%{x|%b %d, %Y}: %{y:.3f}<extra></extra>"),row=2,col=1)
-        fig_m.update_layout(**PL,height=440,
-            title=dict(text="MACD (12, 26, 9)",font=dict(size=12,color="rgba(255,255,255,0.6)"),x=0),
-            xaxis2=dict(gridcolor="rgba(255,255,255,0.05)",type="date",rangeselector=RS,rangeslider=RL))
+        pl(fig_m, height=440, title="MACD (12, 26, 9)", rsel=False, rslide=False, xtype=None)
+        fig_m.update_xaxes(gridcolor="rgba(255,255,255,0.05)", showline=False, zeroline=False, type="date", rangeselector=RS, rangeslider=RL, row=2, col=1)
         fig_m.update_yaxes(gridcolor="rgba(255,255,255,0.05)",showline=False,zeroline=False)
         st.plotly_chart(fig_m,use_container_width=True)
         with st.expander("❓ How to read MACD"):
